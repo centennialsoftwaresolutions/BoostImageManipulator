@@ -1,7 +1,4 @@
 #include <ImageManipulator.h>
-#include <iostream>
-#include <stdexcept>
-
 
 ImageManipulator::ImageManipulator(std::string image_fpath)
 {
@@ -13,9 +10,8 @@ void ImageManipulator::resize_image(int height, int width)
 {
     printf("Resizing image to %dx%d\n", height, width);
     bg::rgb8_image_t resize_square(height, width);
-    bg::read_image(image_fpath, this->usr_input_img, bg::jpeg_tag{});
     bg::resize_view(bg::const_view(usr_input_img), bg::view(resize_square), bg::bilinear_sampler());
-    bg::write_view("output.jpg", bg::const_view(usr_input_img), bg::jpeg_tag{});
+    bg::write_view("output.jpg", bg::const_view(resize_square), bg::jpeg_tag{});
 }
 void ImageManipulator::crop_image(int top, int left, int height, int width)
 {
@@ -25,6 +21,18 @@ void ImageManipulator::crop_image(int top, int left, int height, int width)
     cropped_img = bg::subimage_view(bg::const_view(this->usr_input_img), top_left_point, dimensions);
     bg::write_view("output.jpg", cropped_img, bg::jpeg_tag{});
     return;
+}
+
+
+auto ImageManipulator::get_usr_input_img_height()
+{
+    return this->usr_input_img.height();
+}
+
+
+auto ImageManipulator::get_usr_input_img_width()
+{
+    return this->usr_input_img.width();
 }
 
 
@@ -44,6 +52,7 @@ void get_user_info(std::string message, T*t)
     std::string user_input_line;
     printf("%s", message.c_str());
     std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     getline(std::cin, user_input_line);
     while (!make_user_input_int(user_input_line, *t))
     {
@@ -80,46 +89,47 @@ int main(int argc, char *argv[])
         op = getchar();
         switch (op)
         {
-        case '1':
-        {
-            int height, width;
-            get_user_info<int>("Output height : ", &height);
-            get_user_info<int>("Output width : ", &width);
-            imgManip.resize_image(height, width);
-            printf("View results at output.jpg\n");
-            break;
-        }
-        case '2':
-        {
-            int height, width, left, top;
-            get_user_info<int>("leftmost pixel : ", &left);
-            get_user_info<int>("topmost pixel : ", &top);
-            get_user_info<int>("Output height : ", &height);
-            get_user_info<int>("Output width : ", &width);
-            imgManip.crop_image(top, left, height, width);
-            printf("View results at output.jpg\n");
-            printf("case 2\n");
-            break;
-        }
-        case '3':
-        {
-            printf("case 3\n");
-            break;
-        }
-        case '4':
-        {
-            printf("case 4\n");
-            break;
-        }
-        case 'q':
-        {
-            break;
-        }
-        default:
-        {
-            printf("Invalid option, please choose again");
-            break;
-        }
+            case '1':
+            {
+                int height, width;
+                printf("User input image size : %ldx%ld\n", imgManip.get_usr_input_img_height(), imgManip.get_usr_input_img_width());
+                get_user_info<int>("Output height : ", &height);
+                get_user_info<int>("Output width : ", &width);
+                imgManip.resize_image(height, width);
+                printf("View results at output.jpg\n");
+                break;
+            }
+            case '2':
+            {
+                int height, width, left, top;
+                printf("User input image size : %ldx%ld\n", imgManip.get_usr_input_img_height(), imgManip.get_usr_input_img_width());
+                get_user_info<int>("Leftmost pixel : ", &left);
+                get_user_info<int>("Topmost pixel : ", &top);
+                get_user_info<int>("Output height : ", &height);
+                get_user_info<int>("Output width : ", &width);
+                imgManip.crop_image(top, left, height, width);
+                printf("View results at output.jpg\n");
+                break;
+            }
+            case '3':
+            {
+                printf("case 3\n");
+                break;
+            }
+            case '4':
+            {
+                printf("case 4\n");
+                break;
+            }
+            case 'q':
+            {
+                break;
+            }
+            default:
+            {
+                printf("Invalid option, please choose again");
+                break;
+            }
         }
     }
 
