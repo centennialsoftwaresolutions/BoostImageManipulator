@@ -1,0 +1,14 @@
+using libjpeg : : : : true ; # work around bug on master
+
+project
+    : requirements <include>.
+    ;
+
+lib ImageManipulator : ImageManipulator.cpp
+                     : <include>$(BOOST_ROOT)
+    ;
+
+exe test : test.cpp ImageManipulator
+        : <library>/libjpeg//libjpeg
+        : <include>$(BOOST_ROOT)
+    ;

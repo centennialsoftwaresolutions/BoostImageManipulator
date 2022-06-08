@@ -1,138 +1,51 @@
 #include <ImageManipulator.h>
 
+
 ImageManipulator::ImageManipulator(std::string image_fpath)
 {
     this->image_fpath = image_fpath;
     bg::read_image(this->image_fpath, this->usr_input_img, bg::jpeg_tag{});
+    this->img_height = this->usr_input_img.height();
+    this->img_width = this->usr_input_img.width();
 }
 
-void ImageManipulator::resize_image(int height, int width)
+
+bg::rgb8_image_t ImageManipulator::resize_image(int width, int height)
 {
-    printf("Resizing image to %dx%d\n", height, width);
-    bg::rgb8_image_t resize_square(height, width);
+    bg::rgb8_image_t resize_square(width, height);
     bg::resize_view(bg::const_view(usr_input_img), bg::view(resize_square), bg::bilinear_sampler());
     bg::write_view("output.jpg", bg::const_view(resize_square), bg::jpeg_tag{});
+    return resize_square;
 }
-void ImageManipulator::crop_image(int top, int left, int height, int width)
+
+
+void ImageManipulator::crop_image(int top, int left, int width, int height)
 {
     bg::rgb8c_view_t cropped_img;
     bg::point_t top_left_point(top, left);
-    bg::point_t dimensions(height, width);
+    bg::point_t dimensions(width, height);
     cropped_img = bg::subimage_view(bg::const_view(this->usr_input_img), top_left_point, dimensions);
     bg::write_view("output.jpg", cropped_img, bg::jpeg_tag{});
-    return;
 }
 
 
-auto ImageManipulator::get_usr_input_img_height()
+void ImageManipulator::blur_image()
 {
-    return this->usr_input_img.height();
+    bg::rgb8_image_t orig_image = this->usr_input_img;
+    auto small_square = resize_image(this->img_width/5, this->img_height/5);
+    this->usr_input_img = small_square;
+    resize_image(orig_image.width(), orig_image.height());
+    this->usr_input_img = orig_image;
 }
 
 
-auto ImageManipulator::get_usr_input_img_width()
+long int ImageManipulator::get_usr_input_img_height()
 {
-    return this->usr_input_img.width();
+    return this->img_height;
 }
 
 
-bool make_user_input_int(std::string& input, int& output) {
-    try{
-        output = std::stoi(input);
-    } catch (std::invalid_argument) {
-        return false;
-    }
-    return true;
-}
-
-
-template <typename T>
-void get_user_info(std::string message, T*t)
+long int ImageManipulator::get_usr_input_img_width()
 {
-    std::string user_input_line;
-    printf("%s", message.c_str());
-    std::cin.clear();
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    getline(std::cin, user_input_line);
-    while (!make_user_input_int(user_input_line, *t))
-    {
-        printf("Invalid input - please try again\n");
-        getline(std::cin, user_input_line);
-    }
-}
-
-
-/* Test the class */
-int main(int argc, char *argv[])
-{
-
-    std::string user_input_line;
-
-    if (argc < 2)
-    {
-        printf("Please run this executable with a file path to the image you would like to manipulate as the first argument\n");
-        return -1;
-    }
-
-    /* Instantiate the image tool with the path to the input file for this session */
-    ImageManipulator imgManip((std::string)argv[1]);
-
-    char op = 0;
-    while (op != 'q')
-    {
-        printf("Please select from the menu below : \n");
-        printf("1. Resize\n");
-        printf("2. Crop\n");
-        printf("3. Blur\n");
-        printf("press 'q' to exit the program\n");
-        printf("Choice : ");
-        op = getchar();
-        switch (op)
-        {
-            case '1':
-            {
-                int height, width;
-                printf("User input image size : %ldx%ld\n", imgManip.get_usr_input_img_height(), imgManip.get_usr_input_img_width());
-                get_user_info<int>("Output height : ", &height);
-                get_user_info<int>("Output width : ", &width);
-                imgManip.resize_image(height, width);
-                printf("View results at output.jpg\n");
-                break;
-            }
-            case '2':
-            {
-                int height, width, left, top;
-                printf("User input image size : %ldx%ld\n", imgManip.get_usr_input_img_height(), imgManip.get_usr_input_img_width());
-                get_user_info<int>("Leftmost pixel : ", &left);
-                get_user_info<int>("Topmost pixel : ", &top);
-                get_user_info<int>("Output height : ", &height);
-                get_user_info<int>("Output width : ", &width);
-                imgManip.crop_image(top, left, height, width);
-                printf("View results at output.jpg\n");
-                break;
-            }
-            case '3':
-            {
-                printf("case 3\n");
-                break;
-            }
-            case '4':
-            {
-                printf("case 4\n");
-                break;
-            }
-            case 'q':
-            {
-                break;
-            }
-            default:
-            {
-                printf("Invalid option, please choose again");
-                break;
-            }
-        }
-    }
-
-    printf("Program finished...\n");
-    return 0;
+    return this->img_width;
 }
