@@ -3,7 +3,7 @@
 auto make_user_input_int(std::string input, int& output) {
     try{
         output = std::stoi(input.c_str());
-    } catch (std::invalid_argument) {
+    } catch (std::invalid_argument &) {
         return false;
     }
     return true;

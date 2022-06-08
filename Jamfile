@@ -1,14 +1,18 @@
-using libjpeg : : : : true ; # work around bug on master
+using gcc ;
 
 project
-    : requirements <include>.
+    : requirements <include>. <include>../boost_1_79_0/ <threading>multi
+    : default-build release
     ;
+
+lib jpeg : : <name>jpeg <search>/usr/lib/x86_64-linux-gnu ;
 
 lib ImageManipulator : ImageManipulator.cpp
-                     : <include>$(BOOST_ROOT)
+                     : <optimization>speed
+                     : <optimization>off
     ;
 
-exe test : test.cpp ImageManipulator
-        : <library>/libjpeg//libjpeg
-        : <include>$(BOOST_ROOT)
-    ;
+exe im-tester : test.cpp ImageManipulator jpeg ;
+
+install install-lib : ImageManipulator : <target-os>linux:<location>/usr/lib ;
+install install-bin : im-tester : <target-os>linux:<location>/usr/local/bin ;
